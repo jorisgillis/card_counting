@@ -28,13 +28,17 @@ pub fn play_game(left_player: &mut PlayerStacks, right_player: &mut PlayerStacks
     round_counter
 }
 
+/// Result of one round (could be multiple draws of the stacks in case of equal numbers).
 #[derive(PartialEq, Debug)]
 enum RoundResult {
     Continue,
     GameOver,
 }
 
-
+/// The result of on resolution round.
+///
+/// A round can end with a win for left, a win for right or a game over (no more cards to draw for
+/// one player or the other).
 enum ResolutionResult {
     LeftWins,
     RightWins,
@@ -62,6 +66,14 @@ fn play_round(left: &mut PlayerStacks, right: &mut PlayerStacks) -> RoundResult 
     }
 }
 
+/// Recursively resolve one round of play.
+///
+/// One round can consist of multiple draws of cards if the cards are equal. The end result of the
+/// function is the cards that have been drawn (and hence the price of this round) and the result
+/// of the round (cards go to Left, Right or game over).
+///
+/// A round results in GameOver if either of the players stacks are completely empty. Do note this
+/// can happen whilst cards are being drawn to break a tie. 
 fn resolve_round(left: &mut PlayerStacks, right: &mut PlayerStacks) -> (VecDeque<Card>, ResolutionResult) {
     if left.is_empty() || right.is_empty() {
         let deque: VecDeque<Card> = VecDeque::new();
@@ -95,7 +107,7 @@ fn resolve_round(left: &mut PlayerStacks, right: &mut PlayerStacks) -> (VecDeque
     }
 }
 
-
+/// Cards are either equal, bigger for left or bigger for right.
 enum CompareResult {
     Equal,
     LeftWins,

@@ -6,6 +6,18 @@ use std::collections::VecDeque;
 
 const SUITE_SIZE: usize = 13;
 
+/// A Card is a combination of a suite (the symbol on the card) and its rank within that suite.
+///
+/// A Card represents a card from a deck of playing cards. Typically, there are four suites
+/// (hearts, diamonds, spades and clubs). The cards are ranked 1 to 10 with three additional cards
+/// for the jack (11), queen (12) and king (13).
+///
+/// There is no compare function on the cards, as different games have different comparison rules.
+///
+/// To create a new card:
+/// ```
+/// Card::new(Suite::Heart, 1)
+/// ```
 #[derive(Clone, Debug)]
 pub struct Card {
     pub suite: Suite,
@@ -36,8 +48,30 @@ pub enum Suite {
     Spade,
 }
 
+/// A Stack is a sequence of cards.
 pub type Stack = VecDeque<Card>;
 
+/// A PlayerStacks is the combination of a draw stack (still to be played) and won stack
+/// (won during the previous rounds).
+///
+/// The draw stack is the stack of cards that the player can still play. If the draw stack is empty
+/// the won stack is shuffled and re-purposed as the draw stack.
+/// On the won stack all the cards are deposited that the player has won.
+///
+/// ```
+/// let player_stacks = PlayerStacks::new(deck());
+///
+/// if player_stacks.is_empty() {
+///     panic("Shouldn't be empty!")
+/// }
+///
+/// let initial_number_of_cards = player_stacks.total_cards();
+///
+/// // To get the first card of the draw stack (or the reshuffled won stack if the draw stack is empty)
+/// let first_card: Option<Card> = player_stacks.pop_front();
+///
+/// assert_eq!(initial_number_of_cards - 1, player_stacks.total_cards());
+/// ```
 #[derive(Debug)]
 pub struct PlayerStacks {
     draw_stack: Stack,
@@ -45,6 +79,7 @@ pub struct PlayerStacks {
 }
 
 impl PlayerStacks {
+    /// Create a new pair of stacks based on a deck of cards and an empty won stack.
     pub fn new(stack: VecDeque<Card>) -> PlayerStacks {
         PlayerStacks {
             draw_stack: stack,
@@ -52,18 +87,23 @@ impl PlayerStacks {
         }
     }
 
+    /// A reference to the draw stack of this player.
     pub fn draw_stack(&self) -> &Stack {
         &self.draw_stack
     }
 
+    /// A reference to the won stack of this player.
     pub fn won_stack(&self) -> &Stack {
         &self.won_stack
     }
 
+    /// Checks whether both stacks are empty.
     pub fn is_empty(&self) -> bool {
         self.draw_stack.is_empty() && self.won_stack.is_empty()
     }
 
+    /// Retrieves (and removes) the first card of the draw stack, reshuffling the won stack if
+    /// needed.
     pub fn pop_front(&mut self) -> Option<Card> {
         if self.draw_stack.is_empty() && !self.won_stack.is_empty() {
             self.shuffle_won_stack()
@@ -71,10 +111,12 @@ impl PlayerStacks {
         self.draw_stack.pop_front()
     }
 
+    /// Appends a list of cards to the won stack.
     pub fn append(&mut self, cards: &mut VecDeque<Card>) {
         self.won_stack.append(cards);
     }
 
+    /// The total number of cards in both the draw and won stacks.
     pub fn total_cards(&self) -> usize {
         self.draw_stack.len() + self.won_stack.len()
     }
@@ -88,10 +130,18 @@ impl PlayerStacks {
     }
 }
 
+/// Creates two PlayerStacks with default settings (4 suites; 13 cards per suite).
+///
+/// The default deck of cards has 4 suites each with 13 cards. This function creates a default deck
+/// of cards, shuffles them and puts them into to equal draw stacks (one for each player). The won
+/// stacks of both players is empty.
 pub fn create_default_stacks() -> (PlayerStacks, PlayerStacks) {
     create_stacks(SUITE_SIZE)
 }
 
+/// Creates two non-default PlayerStacks with 4 suites and the requested number of cards.
+///
+/// This function is mainly meant for debugging purposes.
 pub fn create_stacks(suite_size: usize) -> (PlayerStacks, PlayerStacks) {
     let mut deck = deck(suite_size);
     let deck_size = deck.len();
