@@ -37,6 +37,10 @@ impl Card {
             )
         }
     }
+
+    pub fn is_king(&self) -> bool {
+        self.number == 13
+    }
 }
 
 
